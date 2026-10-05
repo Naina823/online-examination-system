@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Examinations | OnlineExam
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- HEADER -->
+
+    <div
+        class="d-flex
+               justify-content-between
+               align-items-center
+               mb-4"
+    >
+
+        <div>
+
+            <a
+                href="{{ url_for('teacher.dashboard') }}"
+                class="text-decoration-none"
+            >
+                ← Back to Dashboard
+            </a>
+
+            <h2 class="fw-bold mt-3 mb-1">
+                My Examinations
+            </h2>
+
+            <p class="text-secondary mb-0">
+                Create, manage and publish your examinations.
+            </p>
+
+        </div>
+
+
+        <a
+            href="{{ url_for('teacher.create_exam') }}"
+            class="btn btn-primary"
+        >
+            + Create Examination
+        </a>
+
+    </div>
+
+
+    <!-- FLASH -->
+
+    {% with messages = get_flashed_messages(
+        with_categories=true
+    ) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div
+                    class="alert alert-{{ category }}
+                           alert-dismissible fade show"
+                >
+
+                    {{ message }}
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                    ></button>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <!-- EXAMS -->
+
+    {% if exams %}
+
+        <div class="row g-4">
+
+            {% for exam in exams %}
+
+                <div class="col-lg-6">
+
+                    <div
+                        class="card
+                               border-0
+                               shadow-sm
+                               h-100"
+                    >
+
+                        <div class="card-body p-4">
+
+                            <div
+                                class="d-flex
+                                       justify-content-between
+                                       align-items-start
+                                       mb-3"
+                            >
+
+                                <div>
+
+                                    <h4 class="fw-bold mb-1">
+                                        {{ exam.title }}
+                                    </h4>
+
+                                    <p class="text-secondary mb-0">
+                                        {{ exam.subject }}
+                                    </p>
+
+                                </div>
+
+
+                                {% if exam.status == "Published" %}
+
+                                    <span class="badge bg-success">
+                                        Published
+                                    </span>
+
+                                {% elif exam.status == "Draft" %}
+
+                                    <span class="badge bg-secondary">
+                                        Draft
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        {{ exam.status }}
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <p class="text-secondary">
+
+                                {{ exam.description
+                                   or
+                                   "No description added."
+                                }}
+
+                            </p>
+
+
+                            <div class="row g-2 mb-4">
+
+                                <div class="col-4">
+
+                                    <div class="bg-light rounded p-3">
+
+                                        <small class="text-secondary d-block">
+                                            Duration
+                                        </small>
+
+                                        <strong>
+                                            {{ exam.duration }} min
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-4">
+
+                                    <div class="bg-light rounded p-3">
+
+                                        <small class="text-secondary d-block">
+                                            Marks
+                                        </small>
+
+                                        <strong>
+                                            {{ exam.total_marks }}
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-4">
+
+                                    <div class="bg-light rounded p-3">
+
+                                        <small class="text-secondary d-block">
+                                            Passing
+                                        </small>
+
+                                        <strong>
+                                            {{ exam.passing_percentage }}%
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="mb-4">
+
+                                <span
+                                    class="badge
+                                    {% if exam.difficulty == 'Easy' %}
+                                        bg-success
+                                    {% elif exam.difficulty == 'Hard' %}
+                                        bg-danger
+                                    {% else %}
+                                        bg-primary
+                                    {% endif %}"
+                                >
+                                    {{ exam.difficulty }}
+                                </span>
+
+
+                                <span class="badge bg-light text-dark">
+                                    {{ exam.exam_questions|length }}
+                                    Questions
+                                </span>
+
+                            </div>
+
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                                <a
+                                    href="{{ url_for(
+                                        'teacher.add_questions',
+                                        exam_id=exam.id
+                                    ) }}"
+                                    class="btn btn-outline-primary"
+                                >
+                                    Questions
+                                </a>
+
+
+                                {% if exam.status == "Draft" %}
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for(
+                                            'teacher.publish_exam',
+                                            exam_id=exam.id
+                                        ) }}"
+                                        onsubmit="return confirm(
+                                            'Publish this examination? Students will be able to attempt it.'
+                                        );"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-success"
+                                        >
+                                            Publish Exam
+                                        </button>
+
+                                    </form>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div
+            class="card border-0 shadow-sm"
+        >
+
+            <div
+                class="card-body
+                       text-center
+                       py-5"
+            >
+
+                <div class="display-4 mb-3">
+                    📝
+                </div>
+
+                <h4 class="fw-bold">
+                    No examinations yet
+                </h4>
+
+                <p class="text-secondary">
+                    Create your first examination.
+                </p>
+
+                <a
+                    href="{{ url_for('teacher.create_exam') }}"
+                    class="btn btn-primary"
+                >
+                    Create Examination
+                </a>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

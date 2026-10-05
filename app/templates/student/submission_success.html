@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}
+Examination Submitted | OnlineExam
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div
+        class="card
+               border-0
+               shadow-sm
+               mx-auto"
+        style="max-width: 700px;"
+    >
+
+        <div
+            class="card-body
+                   text-center
+                   p-5"
+        >
+
+            <div
+                class="display-1
+                       text-success
+                       mb-4"
+            >
+                ✓
+            </div>
+
+
+            <h1 class="fw-bold">
+                Examination Submitted!
+            </h1>
+
+
+            <p class="text-secondary fs-5">
+
+                Your answers have been submitted successfully.
+
+            </p>
+
+
+            <div
+                class="bg-light
+                       rounded
+                       p-4
+                       my-4"
+            >
+
+                <h5 class="fw-bold">
+                    {{ attempt.exam.title }}
+                </h5>
+
+
+                <p class="mb-1">
+
+                    Submitted:
+                    {{ attempt.submitted_at }}
+
+                </p>
+
+
+                <p class="mb-0">
+
+                    Objective Score:
+                    <strong>
+                        {{ attempt.score }}
+                    </strong>
+                    /
+                    {{ attempt.exam.total_marks }}
+
+                </p>
+
+            </div>
+
+
+            <div
+                class="alert alert-info"
+            >
+
+                Descriptive questions, if any,
+                will be evaluated by your teacher.
+
+            </div>
+
+
+            <a
+                href="{{ url_for('student.dashboard') }}"
+                class="btn btn-primary"
+            >
+                Return to Dashboard
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

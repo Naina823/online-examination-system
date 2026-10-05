@@ -1,0 +1,595 @@
+{% extends "base.html" %}
+
+{% block title %}
+Student Dashboard | OnlineExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <span class="badge bg-primary mb-2">
+                STUDENT PANEL
+            </span>
+
+            <h2 class="fw-bold mb-1">
+                Welcome, {{ current_user.name }} 👋
+            </h2>
+
+            <p class="text-secondary mb-0">
+                View your examinations, continue your attempts
+                and check your results.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         AVAILABLE EXAMINATIONS
+    ====================================================== -->
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <div>
+
+            <h4 class="fw-bold mb-1">
+                Available Examinations
+            </h4>
+
+            <p class="text-secondary mb-0">
+                Published examinations currently available to you.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    {% if available_exams %}
+
+        <div class="row g-4 mb-5">
+
+            {% for exam in available_exams %}
+
+                <div class="col-md-6 col-xl-4">
+
+                    <div class="card border-0 shadow-sm h-100">
+
+                        <div class="card-body d-flex flex-column">
+
+                            <!-- EXAM TITLE -->
+
+                            <div class="d-flex justify-content-between align-items-start">
+
+                                <div>
+
+                                    <h5 class="fw-bold mb-1">
+                                        {{ exam.title }}
+                                    </h5>
+
+                                    <small class="text-secondary">
+                                        {{ exam.subject }}
+                                    </small>
+
+                                </div>
+
+
+                                {% if exam.difficulty == "Easy" %}
+
+                                    <span class="badge bg-success">
+                                        Easy
+                                    </span>
+
+                                {% elif exam.difficulty == "Hard" %}
+
+                                    <span class="badge bg-danger">
+                                        Hard
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="badge bg-warning text-dark">
+                                        Medium
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- DESCRIPTION -->
+
+                            {% if exam.description %}
+
+                                <p class="text-secondary mt-3">
+
+                                    {{ exam.description[:150] }}
+
+                                    {% if exam.description|length > 150 %}
+                                        ...
+                                    {% endif %}
+
+                                </p>
+
+                            {% else %}
+
+                                <p class="text-secondary mt-3">
+                                    No description provided.
+                                </p>
+
+                            {% endif %}
+
+
+                            <!-- EXAM INFO -->
+
+                            <div class="row g-2 mt-auto pt-3">
+
+                                <div class="col-6">
+
+                                    <div class="bg-light rounded p-2">
+
+                                        <small class="text-secondary d-block">
+                                            Duration
+                                        </small>
+
+                                        <strong>
+                                            {{ exam.duration }} minutes
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="col-6">
+
+                                    <div class="bg-light rounded p-2">
+
+                                        <small class="text-secondary d-block">
+                                            Total Marks
+                                        </small>
+
+                                        <strong>
+                                            {{ exam.total_marks }}
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- BUTTON -->
+
+                            <a
+                                href="{{ url_for(
+                                    'student.exam_details',
+                                    exam_id=exam.id
+                                ) }}"
+                                class="btn btn-primary w-100 mt-3"
+                            >
+                                View Examination
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+    {% else %}
+
+        <div class="card border-0 shadow-sm mb-5">
+
+            <div class="card-body text-center py-5">
+
+                <div class="display-4 mb-3">
+                    📚
+                </div>
+
+                <h5 class="fw-bold">
+                    No examinations available
+                </h5>
+
+                <p class="text-secondary mb-0">
+                    There are currently no published examinations available for you.
+                </p>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+
+    <!-- =====================================================
+         IN-PROGRESS EXAMINATIONS
+    ====================================================== -->
+
+    {% if in_progress_attempts %}
+
+        <div class="mb-5">
+
+            <div class="mb-3">
+
+                <h4 class="fw-bold mb-1">
+                    Continue Examination
+                </h4>
+
+                <p class="text-secondary mb-0">
+                    You have examinations that you started but have not submitted yet.
+                </p>
+
+            </div>
+
+
+            <div class="row g-4">
+
+                {% for attempt in in_progress_attempts %}
+
+                    <div class="col-md-6 col-xl-4">
+
+                        <div class="card border-warning shadow-sm h-100">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between align-items-start">
+
+                                    <div>
+
+                                        <h5 class="fw-bold">
+                                            {{ attempt.exam.title }}
+                                        </h5>
+
+                                        <small class="text-secondary">
+                                            {{ attempt.exam.subject }}
+                                        </small>
+
+                                    </div>
+
+                                    <span class="badge bg-warning text-dark">
+                                        In Progress
+                                    </span>
+
+                                </div>
+
+
+                                <hr>
+
+
+                                <p class="mb-2">
+
+                                    <strong>
+                                        Started:
+                                    </strong>
+
+                                    {% if attempt.started_at %}
+
+                                        {{ attempt.started_at.strftime(
+                                            "%d %b %Y, %I:%M %p"
+                                        ) }}
+
+                                    {% else %}
+
+                                        —
+
+                                    {% endif %}
+
+                                </p>
+
+
+                                <p class="mb-3">
+
+                                    <strong>
+                                        Duration:
+                                    </strong>
+
+                                    {{ attempt.exam.duration }} minutes
+
+                                </p>
+
+
+                                <a
+                                    href="{{ url_for(
+                                        'student.take_exam',
+                                        attempt_id=attempt.id
+                                    ) }}"
+                                    class="btn btn-warning w-100"
+                                >
+                                    Continue Examination
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+
+    <!-- =====================================================
+         COMPLETED EXAMINATIONS
+    ====================================================== -->
+
+    <div class="mb-4">
+
+        <div class="mb-3">
+
+            <h4 class="fw-bold mb-1">
+                My Submissions
+            </h4>
+
+            <p class="text-secondary mb-0">
+                View your submitted examinations and published results.
+            </p>
+
+        </div>
+
+
+        {% if completed_attempts %}
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body">
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle mb-0">
+
+                            <thead class="table-light">
+
+                                <tr>
+
+                                    <th>
+                                        Examination
+                                    </th>
+
+                                    <th>
+                                        Subject
+                                    </th>
+
+                                    <th>
+                                        Submitted
+                                    </th>
+
+                                    <th>
+                                        Score
+                                    </th>
+
+                                    <th>
+                                        Percentage
+                                    </th>
+
+                                    <th>
+                                        Status
+                                    </th>
+
+                                    <th>
+                                        Action
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for attempt in completed_attempts %}
+
+                                    <tr>
+
+                                        <!-- EXAM -->
+
+                                        <td>
+
+                                            <strong>
+                                                {{ attempt.exam.title }}
+                                            </strong>
+
+                                        </td>
+
+
+                                        <!-- SUBJECT -->
+
+                                        <td>
+                                            {{ attempt.exam.subject }}
+                                        </td>
+
+
+                                        <!-- SUBMITTED -->
+
+                                        <td>
+
+                                            {% if attempt.submitted_at %}
+
+                                                {{ attempt.submitted_at.strftime(
+                                                    "%d %b %Y, %I:%M %p"
+                                                ) }}
+
+                                            {% else %}
+
+                                                —
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- SCORE -->
+
+                                        <td>
+
+                                            {% if attempt.score is not none %}
+
+                                                {{ "%.2f"|format(
+                                                    attempt.score
+                                                ) }}
+
+                                                /
+
+                                                {{ attempt.exam.total_marks }}
+
+                                            {% else %}
+
+                                                —
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- PERCENTAGE -->
+
+                                        <td>
+
+                                            {% if attempt.percentage is not none %}
+
+                                                {{ "%.2f"|format(
+                                                    attempt.percentage
+                                                ) }}%
+
+                                            {% else %}
+
+                                                —
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- STATUS -->
+
+                                        <td>
+
+                                            {% if attempt.status == "Published" %}
+
+                                                <span class="badge bg-success">
+                                                    Result Published
+                                                </span>
+
+                                            {% elif attempt.status == "Evaluated" %}
+
+                                                <span class="badge bg-info">
+                                                    Evaluated
+                                                </span>
+
+                                            {% elif attempt.status == "Submitted" %}
+
+                                                <span class="badge bg-warning text-dark">
+                                                    Awaiting Teacher
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="badge bg-secondary">
+                                                    {{ attempt.status }}
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+
+                                        <!-- ACTION -->
+
+                                        <td>
+
+                                            {% if attempt.status == "Published" %}
+
+                                                <a
+                                                    href="{{ url_for(
+                                                        'student.result',
+                                                        attempt_id=attempt.id
+                                                    ) }}"
+                                                    class="btn btn-sm btn-success"
+                                                >
+                                                    View Result
+                                                </a>
+
+                                            {% elif attempt.status == "Evaluated" %}
+
+                                                <span class="text-info small">
+                                                    Result being published
+                                                </span>
+
+                                            {% else %}
+
+                                                <span class="text-secondary small">
+                                                    Result Pending
+                                                </span>
+
+                                            {% endif %}
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        {% else %}
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body text-center py-5">
+
+                    <div class="display-4 mb-3">
+                        📋
+                    </div>
+
+                    <h5 class="fw-bold">
+                        No submissions yet
+                    </h5>
+
+                    <p class="text-secondary mb-0">
+                        Your submitted examinations will appear here.
+                    </p>
+
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+</div>
+
+{% endblock %}

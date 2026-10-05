@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home | Online Examination System
+{% endblock %}
+
+{% block content %}
+
+<section class="hero-section">
+
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+
+            <!-- LEFT SIDE -->
+            <div class="col-lg-7">
+
+                <span class="badge bg-primary-subtle text-primary mb-3">
+                    Smart Online Examination Platform
+                </span>
+
+                <h1 class="display-3 fw-bold">
+                    Conduct and Manage
+                    <span class="text-primary">
+                        Online Examinations
+                    </span>
+                </h1>
+
+                <p class="lead text-secondary mt-4">
+                    A complete platform for teachers to create examinations,
+                    evaluate student answers, publish results, and track
+                    student performance.
+                </p>
+
+                <!-- MAIN BUTTONS -->
+                <div class="mt-4">
+
+                    <!-- Login Button -->
+                    <a href="{{ url_for('auth.login') }}"
+                       class="btn btn-primary btn-lg me-2">
+                        Student / Teacher Login
+                    </a>
+
+                    <!-- Register Button -->
+                    <a href="{{ url_for('auth.register') }}"
+                       class="btn btn-outline-dark btn-lg">
+                        Create Account
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- RIGHT SIDE -->
+            <div class="col-lg-5">
+
+                <div class="exam-card">
+
+                    <h4 class="fw-bold mb-4">
+                        Examination Platform
+                    </h4>
+
+                    <div class="feature-item">
+                        <span>✓</span>
+                        Secure student authentication
+                    </div>
+
+                    <div class="feature-item">
+                        <span>✓</span>
+                        Online examination system
+                    </div>
+
+                    <div class="feature-item">
+                        <span>✓</span>
+                        Automatic objective evaluation
+                    </div>
+
+                    <div class="feature-item">
+                        <span>✓</span>
+                        Teacher evaluation
+                    </div>
+
+                    <div class="feature-item">
+                        <span>✓</span>
+                        Performance analytics
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+{% endblock %}

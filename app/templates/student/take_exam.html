@@ -1,0 +1,1154 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ exam.title }} | Examination
+{% endblock %}
+
+
+{% block content %}
+
+<div
+    class="container-fluid py-3"
+    style="max-width: 1400px;"
+>
+
+    <!-- =====================================================
+         TOP BAR
+    ====================================================== -->
+
+    <div
+        class="card
+               border-0
+               shadow-sm
+               mb-4"
+    >
+
+        <div class="card-body">
+
+            <div
+                class="d-flex
+                       justify-content-between
+                       align-items-center"
+            >
+
+                <div>
+
+                    <h4 class="fw-bold mb-1">
+                        {{ exam.title }}
+                    </h4>
+
+                    <small class="text-secondary">
+                        {{ exam.subject }}
+                    </small>
+
+                </div>
+
+
+                <div
+                    class="text-center"
+                >
+
+                    <small
+                        class="text-secondary
+                               d-block"
+                    >
+                        TIME REMAINING
+                    </small>
+
+
+                    <div
+                        id="timer"
+                        class="fw-bold
+                               fs-3
+                               text-danger"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="row g-4">
+
+
+        <!-- =================================================
+             QUESTIONS
+        ================================================== -->
+
+        <div class="col-lg-9">
+
+            <form
+                id="examForm"
+                method="POST"
+                action="{{ url_for(
+                    'student.submit_exam',
+                    attempt_id=attempt.id
+                ) }}"
+            >
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}"
+                >
+
+
+                {% for item in exam_questions %}
+
+                    {% set question = item.question %}
+
+                    <div
+                        class="card
+                               border-0
+                               shadow-sm
+                               question-card
+                               mb-4"
+                        id="question-{{ loop.index }}"
+                        data-question-id="{{ question.id }}"
+                        {% if not loop.first %}
+                            style="display:none;"
+                        {% endif %}
+                    >
+
+                        <div class="card-body p-5">
+
+                            <!-- QUESTION NUMBER -->
+
+                            <div
+                                class="d-flex
+                                       justify-content-between
+                                       mb-4"
+                            >
+
+                                <span
+                                    class="badge
+                                           bg-primary"
+                                >
+
+                                    Question
+                                    {{ loop.index }}
+                                    /
+                                    {{ exam_questions|length }}
+
+                                </span>
+
+
+                                <span
+                                    class="badge
+                                           bg-light
+                                           text-dark"
+                                >
+
+                                    {{ question.marks }}
+                                    mark{% if question.marks != 1 %}s{% endif %}
+
+                                </span>
+
+                            </div>
+
+
+                            <!-- QUESTION -->
+
+                            <h4 class="fw-semibold mb-4">
+
+                                {{ question.question_text }}
+
+                            </h4>
+
+
+                            <!-- =================================
+                                 MCQ
+                            ================================== -->
+
+                            {% if question.question_type == "MCQ" %}
+
+                                <div class="d-grid gap-3">
+
+                                    {% for option in question.options %}
+
+                                        <label
+                                            class="border
+                                                   rounded-3
+                                                   p-3
+                                                   option-label"
+                                        >
+
+                                            <input
+                                                type="radio"
+                                                class="form-check-input me-2 answer-input"
+                                                name="question_{{ question.id }}"
+                                                value="{{ option.option_label }}"
+                                                data-question-id="{{ question.id }}"
+                                            >
+
+                                            <strong>
+                                                {{ option.option_label }}.
+                                            </strong>
+
+                                            {{ option.option_text }}
+
+                                        </label>
+
+                                    {% endfor %}
+
+                                </div>
+
+
+                            <!-- =================================
+                                 TRUE / FALSE
+                            ================================== -->
+
+                            {% elif question.question_type == "True/False" %}
+
+                                <div class="d-grid gap-3">
+
+                                    <label
+                                        class="border
+                                               rounded-3
+                                               p-4
+                                               option-label"
+                                    >
+
+                                        <input
+                                            type="radio"
+                                            class="form-check-input me-2 answer-input"
+                                            name="question_{{ question.id }}"
+                                            value="True"
+                                            data-question-id="{{ question.id }}"
+                                        >
+
+                                        True
+
+                                    </label>
+
+
+                                    <label
+                                        class="border
+                                               rounded-3
+                                               p-4
+                                               option-label"
+                                    >
+
+                                        <input
+                                            type="radio"
+                                            class="form-check-input me-2 answer-input"
+                                            name="question_{{ question.id }}"
+                                            value="False"
+                                            data-question-id="{{ question.id }}"
+                                        >
+
+                                        False
+
+                                    </label>
+
+                                </div>
+
+
+                            <!-- =================================
+                                 DESCRIPTIVE
+                            ================================== -->
+
+                            {% else %}
+
+                                <textarea
+                                    class="form-control answer-textarea"
+                                    rows="8"
+                                    name="question_{{ question.id }}"
+                                    data-question-id="{{ question.id }}"
+                                    placeholder="Write your answer here..."
+                                ></textarea>
+
+                            {% endif %}
+
+
+                            <!-- NAVIGATION -->
+
+                            <div
+                                class="d-flex
+                                       justify-content-between
+                                       mt-5"
+                            >
+
+                                {% if not loop.first %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-secondary previous-btn"
+                                    >
+                                        ← Previous
+                                    </button>
+
+                                {% else %}
+
+                                    <span></span>
+
+                                {% endif %}
+
+
+                                {% if not loop.last %}
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-primary next-btn"
+                                    >
+                                        Save & Next →
+                                    </button>
+
+                                {% else %}
+
+                                    <button
+                                        type="button"
+                                        id="submitButton"
+                                        class="btn btn-success"
+                                    >
+                                        Submit Examination
+                                    </button>
+
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </form>
+
+        </div>
+
+
+        <!-- =================================================
+             QUESTION PALETTE
+        ================================================== -->
+
+        <div class="col-lg-3">
+
+            <div
+                class="card
+                       border-0
+                       shadow-sm
+                       sticky-top"
+                style="top: 20px;"
+            >
+
+                <div class="card-body">
+
+                    <h5 class="fw-bold mb-3">
+                        Questions
+                    </h5>
+
+
+                    <div
+                        id="questionPalette"
+                        class="d-flex
+                               flex-wrap
+                               gap-2"
+                    >
+
+                        {% for item in exam_questions %}
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary
+                                       palette-btn"
+                                data-index="{{ loop.index }}"
+                            >
+                                {{ loop.index }}
+                            </button>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <div class="small">
+
+                        <div class="mb-2">
+
+                            <span
+                                class="badge
+                                       bg-success"
+                            >
+                                ✓
+                            </span>
+
+                            Answered
+
+                        </div>
+
+
+                        <div class="mb-2">
+
+                            <span
+                                class="badge
+                                       bg-secondary"
+                            >
+                                ○
+                            </span>
+
+                            Unanswered
+
+                        </div>
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <div class="alert alert-warning small mb-0">
+
+                        Your answers are automatically saved.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     CONFIRMATION MODAL
+========================================================== -->
+
+<div
+    class="modal fade"
+    id="submitModal"
+    tabindex="-1"
+>
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title fw-bold">
+                    Submit Examination?
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                ></button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <p>
+                    Are you sure you want to submit your examination?
+                </p>
+
+                <div id="submissionSummary"></div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal"
+                >
+                    Continue Exam
+                </button>
+
+
+                <button
+                    type="button"
+                    id="confirmSubmit"
+                    class="btn btn-success"
+                >
+                    Yes, Submit
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================== -->
+
+<script>
+
+let remainingSeconds =
+    {{ remaining_seconds }};
+
+const csrfToken =
+    "{{ csrf_token() }}";
+
+const attemptId =
+    {{ attempt.id }};
+
+const totalQuestions =
+    {{ exam_questions|length }};
+
+let currentQuestion =
+    1;
+
+
+// ============================================================
+// TIMER
+// ============================================================
+
+function updateTimer() {
+
+    const timer =
+        document.getElementById("timer");
+
+    if (remainingSeconds <= 0) {
+
+        timer.textContent =
+            "00:00";
+
+        autoSubmit();
+
+        return;
+    }
+
+
+    const minutes =
+        Math.floor(
+            remainingSeconds / 60
+        );
+
+
+    const seconds =
+        remainingSeconds % 60;
+
+
+    timer.textContent =
+        String(minutes).padStart(2, "0")
+        +
+        ":"
+        +
+        String(seconds).padStart(2, "0");
+
+
+    if (remainingSeconds <= 60) {
+
+        timer.classList.add(
+            "text-danger"
+        );
+
+    }
+
+
+    remainingSeconds--;
+
+}
+
+
+updateTimer();
+
+
+const timerInterval =
+    setInterval(
+        updateTimer,
+        1000
+    );
+
+
+// ============================================================
+// SHOW QUESTION
+// ============================================================
+
+function showQuestion(index) {
+
+    document
+        .querySelectorAll(".question-card")
+        .forEach(
+            function(card) {
+
+                card.style.display =
+                    "none";
+
+            }
+        );
+
+
+    const selected =
+        document.getElementById(
+            "question-" + index
+        );
+
+
+    if (selected) {
+
+        selected.style.display =
+            "block";
+
+    }
+
+
+    currentQuestion =
+        index;
+
+
+    document
+        .querySelectorAll(".palette-btn")
+        .forEach(
+            function(button) {
+
+                button.classList.remove(
+                    "btn-primary"
+                );
+
+                button.classList.add(
+                    "btn-outline-secondary"
+                );
+
+            }
+        );
+
+
+    const active =
+        document.querySelector(
+            '.palette-btn[data-index="' +
+            index +
+            '"]'
+        );
+
+
+    if (active) {
+
+        active.classList.remove(
+            "btn-outline-secondary"
+        );
+
+        active.classList.add(
+            "btn-primary"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// PALETTE
+// ============================================================
+
+document
+    .querySelectorAll(".palette-btn")
+    .forEach(
+        function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    showQuestion(
+                        parseInt(
+                            this.dataset.index
+                        )
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+// ============================================================
+// SAVE ANSWER
+// ============================================================
+
+async function saveQuestionAnswer(card) {
+
+    const questionId =
+        card.dataset.questionId;
+
+
+    const radio =
+        card.querySelector(
+            'input[type="radio"]:checked'
+        );
+
+
+    const textarea =
+        card.querySelector(
+            "textarea"
+        );
+
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "question_id",
+        questionId
+    );
+
+
+    if (radio) {
+
+        formData.append(
+            "selected_answer",
+            radio.value
+        );
+
+    }
+
+
+    if (textarea) {
+
+        formData.append(
+            "text_answer",
+            textarea.value
+        );
+
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "{{ url_for(
+                    'student.save_answer',
+                    attempt_id=attempt.id
+                ) }}",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "X-CSRFToken":
+                            csrfToken
+                    },
+
+                    body: formData
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !data.success
+            &&
+            data.expired
+        ) {
+
+            autoSubmit();
+
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Auto-save error:",
+            error
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// MARK PALETTE AS ANSWERED
+// ============================================================
+
+function updatePalette(card) {
+
+    const questionId =
+        card.dataset.questionId;
+
+
+    const answered =
+        card.querySelector(
+            'input[type="radio"]:checked'
+        )
+        ||
+        (
+            card.querySelector("textarea")
+            &&
+            card.querySelector("textarea").value.trim()
+        );
+
+
+    const index =
+        Array
+            .from(
+                document.querySelectorAll(
+                    ".question-card"
+                )
+            )
+            .indexOf(card)
+            + 1;
+
+
+    const button =
+        document.querySelector(
+            '.palette-btn[data-index="' +
+            index +
+            '"]'
+        );
+
+
+    if (!button) return;
+
+
+    if (answered) {
+
+        button.classList.remove(
+            "btn-outline-secondary"
+        );
+
+        button.classList.add(
+            "btn-success"
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// ANSWER CHANGE
+// ============================================================
+
+document
+    .querySelectorAll(".answer-input")
+    .forEach(
+        function(input) {
+
+            input.addEventListener(
+                "change",
+                async function() {
+
+                    const card =
+                        this.closest(
+                            ".question-card"
+                        );
+
+                    updatePalette(
+                        card
+                    );
+
+                    await saveQuestionAnswer(
+                        card
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+document
+    .querySelectorAll(".answer-textarea")
+    .forEach(
+        function(textarea) {
+
+            textarea.addEventListener(
+                "blur",
+                async function() {
+
+                    const card =
+                        this.closest(
+                            ".question-card"
+                        );
+
+                    updatePalette(
+                        card
+                    );
+
+                    await saveQuestionAnswer(
+                        card
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+// ============================================================
+// NEXT
+// ============================================================
+
+document
+    .querySelectorAll(".next-btn")
+    .forEach(
+        function(button) {
+
+            button.addEventListener(
+                "click",
+                async function() {
+
+                    const card =
+                        this.closest(
+                            ".question-card"
+                        );
+
+                    await saveQuestionAnswer(
+                        card
+                    );
+
+                    if (
+                        currentQuestion
+                        <
+                        totalQuestions
+                    ) {
+
+                        showQuestion(
+                            currentQuestion + 1
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+// ============================================================
+// PREVIOUS
+// ============================================================
+
+document
+    .querySelectorAll(".previous-btn")
+    .forEach(
+        function(button) {
+
+            button.addEventListener(
+                "click",
+                function() {
+
+                    if (
+                        currentQuestion > 1
+                    ) {
+
+                        showQuestion(
+                            currentQuestion - 1
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+// ============================================================
+// SUBMISSION
+// ============================================================
+
+function getAnsweredCount() {
+
+    let count = 0;
+
+
+    document
+        .querySelectorAll(".question-card")
+        .forEach(
+            function(card) {
+
+                const radio =
+                    card.querySelector(
+                        'input[type="radio"]:checked'
+                    );
+
+
+                const textarea =
+                    card.querySelector(
+                        "textarea"
+                    );
+
+
+                if (
+                    radio
+                    ||
+                    (
+                        textarea
+                        &&
+                        textarea.value.trim()
+                    )
+                ) {
+
+                    count++;
+
+                }
+
+            }
+        );
+
+
+    return count;
+
+}
+
+
+async function openSubmitModal() {
+
+    const answered =
+        getAnsweredCount();
+
+
+    const unanswered =
+        totalQuestions
+        -
+        answered;
+
+
+    document.getElementById(
+        "submissionSummary"
+    ).innerHTML =
+
+        "<p><strong>Total questions:</strong> "
+        +
+        totalQuestions
+        +
+        "</p>"
+        +
+
+        "<p><strong>Answered:</strong> "
+        +
+        answered
+        +
+        "</p>"
+        +
+
+        "<p><strong>Unanswered:</strong> "
+        +
+        unanswered
+        +
+        "</p>";
+
+
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById(
+                "submitModal"
+            )
+        );
+
+
+    modal.show();
+
+}
+
+
+document
+    .getElementById(
+        "submitButton"
+    )
+    .addEventListener(
+        "click",
+        openSubmitModal
+    );
+
+
+// ============================================================
+// FINAL SUBMIT
+// ============================================================
+
+document
+    .getElementById(
+        "confirmSubmit"
+    )
+    .addEventListener(
+        "click",
+        async function() {
+
+            clearInterval(
+                timerInterval
+            );
+
+
+            const cards =
+                document.querySelectorAll(
+                    ".question-card"
+                );
+
+
+            for (
+                const card of cards
+            ) {
+
+                await saveQuestionAnswer(
+                    card
+                );
+
+            }
+
+
+            document
+                .getElementById(
+                    "examForm"
+                )
+                .submit();
+
+        }
+    );
+
+
+// ============================================================
+// AUTO SUBMIT
+// ============================================================
+
+function autoSubmit() {
+
+    clearInterval(
+        timerInterval
+    );
+
+
+    alert(
+        "Your examination time has expired. Your exam will now be submitted."
+    );
+
+
+    document
+        .getElementById(
+            "examForm"
+        )
+        .submit();
+
+}
+
+
+showQuestion(1);
+
+</script>
+
+{% endblock %}

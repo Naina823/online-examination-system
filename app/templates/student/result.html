@@ -1,0 +1,363 @@
+{% extends "base.html" %}
+
+{% block title %}
+Examination Result | OnlineExam
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="text-center mb-5">
+
+        <div class="display-4 mb-3">
+            {% if passed %}
+                🎉
+            {% else %}
+                📋
+            {% endif %}
+        </div>
+
+        <h2 class="fw-bold">
+            Examination Result
+        </h2>
+
+        <p class="text-secondary">
+            {{ exam.title }}
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         RESULT SUMMARY
+    ====================================================== -->
+
+    <div class="row justify-content-center mb-5">
+
+        <div class="col-lg-8">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body">
+
+                    <div class="row text-center">
+
+                        <div class="col-md-4 border-end">
+
+                            <small class="text-secondary">
+                                Marks Obtained
+                            </small>
+
+                            <h2 class="fw-bold mt-2">
+
+                                {{ "%.2f"|format(
+                                    attempt.score or 0
+                                ) }}
+
+                                /
+
+                                {{ exam.total_marks }}
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="col-md-4 border-end">
+
+                            <small class="text-secondary">
+                                Percentage
+                            </small>
+
+                            <h2 class="fw-bold mt-2">
+
+                                {{ "%.2f"|format(
+                                    attempt.percentage or 0
+                                ) }}%
+
+                            </h2>
+
+                        </div>
+
+
+                        <div class="col-md-4">
+
+                            <small class="text-secondary">
+                                Result
+                            </small>
+
+                            <h2 class="fw-bold mt-2">
+
+                                {% if passed %}
+
+                                    <span class="text-success">
+                                        PASS
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-danger">
+                                        FAIL
+                                    </span>
+
+                                {% endif %}
+
+                            </h2>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         QUESTION STATISTICS
+    ====================================================== -->
+
+    <div class="row g-3 mb-5">
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body text-center">
+
+                    <h3 class="fw-bold text-success">
+                        {{ correct_count }}
+                    </h3>
+
+                    <p class="mb-0">
+                        Correct Answers
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body text-center">
+
+                    <h3 class="fw-bold text-danger">
+                        {{ incorrect_count }}
+                    </h3>
+
+                    <p class="mb-0">
+                        Incorrect Answers
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-md-4">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body text-center">
+
+                    <h3 class="fw-bold text-secondary">
+                        {{ unanswered_count }}
+                    </h3>
+
+                    <p class="mb-0">
+                        Unanswered
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         QUESTION-WISE RESULT
+    ====================================================== -->
+
+    <h4 class="fw-bold mb-3">
+        Question-wise Evaluation
+    </h4>
+
+
+    {% for exam_question in exam_questions %}
+
+        {% set question = exam_question.question %}
+
+        {% set answer = answers_by_question.get(question.id) %}
+
+
+        <div class="card border-0 shadow-sm mb-4">
+
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between">
+
+                    <span class="badge bg-primary">
+                        Question {{ exam_question.question_order }}
+                    </span>
+
+                    <strong>
+                        {{ answer.marks_obtained if answer else 0 }}
+                        /
+                        {{ question.marks }}
+                    </strong>
+
+                </div>
+
+
+                <h5 class="fw-bold mt-3">
+                    {{ question.question_text }}
+                </h5>
+
+
+                <hr>
+
+
+                <!-- OBJECTIVE ANSWER -->
+
+                {% if question.question_type in [
+                    "MCQ",
+                    "True/False"
+                ] %}
+
+                    <p class="mb-2">
+
+                        <strong>
+                            Your Answer:
+                        </strong>
+
+                        {% if answer and answer.selected_answer %}
+
+                            {{ answer.selected_answer }}
+
+                        {% else %}
+
+                            <span class="text-secondary">
+                                Not answered
+                            </span>
+
+                        {% endif %}
+
+                    </p>
+
+
+                    <p class="mb-2">
+
+                        <strong>
+                            Correct Answer:
+                        </strong>
+
+                        {{ question.correct_answer }}
+
+                    </p>
+
+
+                    {% if answer and answer.is_correct %}
+
+                        <div class="alert alert-success mb-0">
+                            ✓ Correct
+                        </div>
+
+                    {% else %}
+
+                        <div class="alert alert-danger mb-0">
+                            ✗ Incorrect
+                        </div>
+
+                    {% endif %}
+
+
+                <!-- DESCRIPTIVE ANSWER -->
+
+                {% else %}
+
+                    <p class="fw-bold mb-2">
+                        Your Answer:
+                    </p>
+
+                    <div class="bg-light border rounded p-3 mb-3">
+
+                        {% if answer and answer.text_answer %}
+
+                            {{ answer.text_answer|e|replace(
+                                '\n',
+                                '<br>'
+                            )|safe }}
+
+                        {% else %}
+
+                            <span class="text-secondary">
+                                Not answered
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    {% if answer and answer.teacher_feedback %}
+
+                        <div class="alert alert-info">
+
+                            <strong>
+                                Teacher Feedback:
+                            </strong>
+
+                            <br>
+
+                            {{ answer.teacher_feedback }}
+
+                        </div>
+
+                    {% endif %}
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
+
+    <!-- =====================================================
+         BACK BUTTON
+    ====================================================== -->
+
+    <div class="text-center mt-4">
+
+        <a
+            href="{{ url_for('student.dashboard') }}"
+            class="btn btn-primary"
+        >
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,818 @@
+{% extends "base.html" %}
+
+{% block title %}
+Add Questions | OnlineExam
+{% endblock %}
+
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="mb-4">
+
+        <a
+            href="{{ url_for('teacher.exams') }}"
+            class="text-decoration-none"
+        >
+            ← Back to Examinations
+        </a>
+
+
+        <div class="d-flex justify-content-between align-items-start mt-3">
+
+            <div>
+
+                <h2 class="fw-bold mb-1">
+                    {{ exam.title }}
+                </h2>
+
+                <p class="text-secondary mb-0">
+
+                    {{ exam.subject }}
+
+                    ·
+
+                    {{ exam.total_marks }} Total Marks
+
+                    ·
+
+                    {{ exam.duration }} Minutes
+
+                </p>
+
+            </div>
+
+
+            <span class="badge bg-secondary fs-6">
+                {{ exam.status }}
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FLASH MESSAGES
+    ====================================================== -->
+
+    {% with messages = get_flashed_messages(
+        with_categories=true
+    ) %}
+
+        {% if messages %}
+
+            {% for category, message in messages %}
+
+                <div
+                    class="alert
+                    {% if category == 'success' %}
+                        alert-success
+                    {% elif category == 'danger' %}
+                        alert-danger
+                    {% elif category == 'warning' %}
+                        alert-warning
+                    {% else %}
+                        alert-info
+                    {% endif %}
+                    alert-dismissible fade show"
+                    role="alert"
+                >
+
+                    {{ message }}
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                    ></button>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    {% endwith %}
+
+
+    <div class="row g-4">
+
+
+        <!-- =================================================
+             LEFT SIDE
+             ADD QUESTION
+        ================================================== -->
+
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <h4 class="fw-bold mb-1">
+                        Add Question
+                    </h4>
+
+                    <p class="text-secondary mb-4">
+                        Create a question for this examination.
+                    </p>
+
+
+                    <form
+                        method="POST"
+                        action="{{ url_for('teacher.add_question') }}"
+                    >
+
+                        <!-- =================================================
+                             CSRF
+                        ================================================== -->
+
+                        <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="{{ csrf_token() }}"
+                        >
+
+
+                        <!-- =================================================
+                             EXAM ID
+                        ================================================== -->
+
+                        <input
+                            type="hidden"
+                            name="exam_id"
+                            value="{{ exam.id }}"
+                        >
+
+
+                        <!-- =================================================
+                             QUESTION TYPE
+                        ================================================== -->
+
+                        <div class="mb-4">
+
+                            <label
+                                for="question_type"
+                                class="form-label fw-semibold"
+                            >
+                                Question Type *
+                            </label>
+
+
+                            <select
+                                id="question_type"
+                                name="question_type"
+                                class="form-select"
+                                required
+                            >
+
+                                <option value="">
+                                    Select Question Type
+                                </option>
+
+                                <option value="MCQ">
+                                    Multiple Choice Question
+                                </option>
+
+                                <option value="True/False">
+                                    True / False
+                                </option>
+
+                                <option value="Short Answer">
+                                    Short Answer
+                                </option>
+
+                                <option value="Long Answer">
+                                    Long Answer
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             QUESTION TEXT
+                        ================================================== -->
+
+                        <div class="mb-4">
+
+                            <label
+                                for="question_text"
+                                class="form-label fw-semibold"
+                            >
+                                Question *
+                            </label>
+
+
+                            <textarea
+                                id="question_text"
+                                name="question_text"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Enter your question..."
+                                required
+                            ></textarea>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             MARKS + DIFFICULTY
+                        ================================================== -->
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="marks"
+                                    class="form-label fw-semibold"
+                                >
+                                    Marks *
+                                </label>
+
+
+                                <input
+                                    type="number"
+                                    id="marks"
+                                    name="marks"
+                                    class="form-control"
+                                    min="0.5"
+                                    step="0.5"
+                                    value="1"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="col-md-6">
+
+                                <label
+                                    for="difficulty"
+                                    class="form-label fw-semibold"
+                                >
+                                    Difficulty
+                                </label>
+
+
+                                <select
+                                    id="difficulty"
+                                    name="difficulty"
+                                    class="form-select"
+                                >
+
+                                    <option value="Easy">
+                                        Easy
+                                    </option>
+
+                                    <option
+                                        value="Medium"
+                                        selected
+                                    >
+                                        Medium
+                                    </option>
+
+                                    <option value="Hard">
+                                        Hard
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             MCQ SECTION
+                        ================================================== -->
+
+                        <div
+                            id="mcqSection"
+                            class="d-none"
+                        >
+
+                            <div class="card bg-light border-0 mb-4">
+
+                                <div class="card-body">
+
+                                    <h6 class="fw-bold mb-3">
+                                        Answer Options
+                                    </h6>
+
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="option_a"
+                                            class="form-label"
+                                        >
+                                            Option A
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            id="option_a"
+                                            name="option_a"
+                                            class="form-control"
+                                            placeholder="Enter option A"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="option_b"
+                                            class="form-label"
+                                        >
+                                            Option B
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            id="option_b"
+                                            name="option_b"
+                                            class="form-control"
+                                            placeholder="Enter option B"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="option_c"
+                                            class="form-label"
+                                        >
+                                            Option C
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            id="option_c"
+                                            name="option_c"
+                                            class="form-control"
+                                            placeholder="Enter option C"
+                                        >
+
+                                    </div>
+
+
+                                    <div class="mb-3">
+
+                                        <label
+                                            for="option_d"
+                                            class="form-label"
+                                        >
+                                            Option D
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            id="option_d"
+                                            name="option_d"
+                                            class="form-control"
+                                            placeholder="Enter option D"
+                                        >
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <label
+                                            for="mcq_correct_answer"
+                                            class="form-label"
+                                        >
+                                            Correct Answer
+                                        </label>
+
+
+                                        <select
+                                            name="mcq_correct_answer"
+                                            id="mcq_correct_answer"
+                                            class="form-select"
+                                        >
+
+                                            <option value="">
+                                                Select correct option
+                                            </option>
+
+                                            <option value="A">
+                                                Option A
+                                            </option>
+
+                                            <option value="B">
+                                                Option B
+                                            </option>
+
+                                            <option value="C">
+                                                Option C
+                                            </option>
+
+                                            <option value="D">
+                                                Option D
+                                            </option>
+
+                                        </select>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             TRUE / FALSE SECTION
+                        ================================================== -->
+
+                        <div
+                            id="trueFalseSection"
+                            class="d-none"
+                        >
+
+                            <div class="card bg-light border-0 mb-4">
+
+                                <div class="card-body">
+
+                                    <h6 class="fw-bold mb-3">
+                                        Correct Answer
+                                    </h6>
+
+
+                                    <select
+                                        name="tf_correct_answer"
+                                        id="tf_correct_answer"
+                                        class="form-select"
+                                    >
+
+                                        <option value="">
+                                            Select correct answer
+                                        </option>
+
+                                        <option value="True">
+                                            True
+                                        </option>
+
+                                        <option value="False">
+                                            False
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             SHORT / LONG ANSWER SECTION
+                        ================================================== -->
+
+                        <div
+                            id="textAnswerSection"
+                            class="d-none"
+                        >
+
+                            <div class="card bg-light border-0 mb-4">
+
+                                <div class="card-body">
+
+                                    <h6 class="fw-bold mb-3">
+                                        Reference Answer
+                                    </h6>
+
+
+                                    <textarea
+                                        name="text_correct_answer"
+                                        id="text_correct_answer"
+                                        class="form-control"
+                                        rows="5"
+                                        placeholder="Enter the expected/reference answer..."
+                                    ></textarea>
+
+                                    <small class="text-secondary">
+                                        For long-answer questions this can
+                                        be used as marking guidance.
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             EXPLANATION
+                        ================================================== -->
+
+                        <div class="mb-4">
+
+                            <label
+                                for="explanation"
+                                class="form-label fw-semibold"
+                            >
+                                Explanation
+                            </label>
+
+
+                            <textarea
+                                id="explanation"
+                                name="explanation"
+                                class="form-control"
+                                rows="3"
+                                placeholder="Optional explanation for the answer..."
+                            ></textarea>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             BUTTONS
+                        ================================================== -->
+
+                        <div class="d-flex gap-2">
+
+                            <a
+                                href="{{ url_for(
+                                    'teacher.add_questions',
+                                    exam_id=exam.id
+                                ) }}"
+                                class="btn btn-light"
+                            >
+                                Clear
+                            </a>
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                Add Question
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             RIGHT SIDE
+             QUESTION LIST
+        ================================================== -->
+
+        <div class="col-lg-5">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <div
+                        class="d-flex
+                               justify-content-between
+                               align-items-center
+                               mb-3"
+                    >
+
+                        <div>
+
+                            <h5 class="fw-bold mb-1">
+                                Questions
+                            </h5>
+
+                            <small class="text-secondary">
+                                Questions added to this exam
+                            </small>
+
+                        </div>
+
+
+                        <span class="badge bg-primary">
+
+                            {{ questions|length }}
+
+                        </span>
+
+                    </div>
+
+
+                    {% if questions %}
+
+                        <div class="list-group">
+
+                            {% for question in questions %}
+
+                                <div
+                                    class="list-group-item
+                                           border
+                                           mb-2
+                                           rounded-3"
+                                >
+
+                                    <div
+                                        class="d-flex
+                                               justify-content-between
+                                               gap-3"
+                                    >
+
+                                        <div>
+
+                                            <span
+                                                class="badge bg-light
+                                                       text-dark
+                                                       border
+                                                       mb-2"
+                                            >
+                                                Q{{ loop.index }}
+                                            </span>
+
+
+                                            <div class="fw-semibold">
+
+                                                {{ question.question_text }}
+
+                                            </div>
+
+
+                                            <small
+                                                class="text-secondary"
+                                            >
+
+                                                {{ question.question_type }}
+
+                                                ·
+
+                                                {{ question.marks }} marks
+
+                                                ·
+
+                                                {{ question.difficulty }}
+
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% else %}
+
+                        <div
+                            class="text-center
+                                   py-5
+                                   text-secondary"
+                        >
+
+                            <div class="display-6 mb-3">
+                                📝
+                            </div>
+
+                            <p class="mb-0">
+                                No questions have been added yet.
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     QUESTION TYPE JAVASCRIPT
+========================================================== -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const questionType =
+            document.getElementById(
+                "question_type"
+            );
+
+        const mcqSection =
+            document.getElementById(
+                "mcqSection"
+            );
+
+        const trueFalseSection =
+            document.getElementById(
+                "trueFalseSection"
+            );
+
+        const textAnswerSection =
+            document.getElementById(
+                "textAnswerSection"
+            );
+
+
+        function updateQuestionFields() {
+
+            const type =
+                questionType.value;
+
+
+            // Hide everything first
+
+            mcqSection.classList.add(
+                "d-none"
+            );
+
+            trueFalseSection.classList.add(
+                "d-none"
+            );
+
+            textAnswerSection.classList.add(
+                "d-none"
+            );
+
+
+            // Show required section
+
+            if (type === "MCQ") {
+
+                mcqSection.classList.remove(
+                    "d-none"
+                );
+
+            }
+
+            else if (
+                type === "True/False"
+            ) {
+
+                trueFalseSection.classList.remove(
+                    "d-none"
+                );
+
+            }
+
+            else if (
+                type === "Short Answer"
+                ||
+                type === "Long Answer"
+            ) {
+
+                textAnswerSection.classList.remove(
+                    "d-none"
+                );
+
+            }
+
+        }
+
+
+        questionType.addEventListener(
+            "change",
+            updateQuestionFields
+        );
+
+
+        updateQuestionFields();
+
+    }
+
+);
+
+</script>
+
+{% endblock %}
